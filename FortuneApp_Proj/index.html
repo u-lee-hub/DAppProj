@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔮 운세 DApp - 블록체인 점성술</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            margin-bottom: 20px;
+            color: #ffd700;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 16px;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #ffd700, #ffed4e);
+            color: #333;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 215, 0, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .fortune-result {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            border-radius: 20px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .fortune-result h3 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .fortune-message {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .lucky-number {
+            font-size: 3em;
+            font-weight: bold;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .status {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: rgba(46, 204, 113, 0.3);
+            border: 1px solid #2ecc71;
+        }
+
+        .status.error {
+            background: rgba(231, 76, 60, 0.3);
+            border: 1px solid #e74c3c;
+        }
+
+        .zodiac-select {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+        }
+
+        .zodiac-select option {
+            background: #333;
+            color: white;
+        }
+
+        .admin-section {
+            border-top: 2px solid rgba(255, 215, 0, 0.3);
+            padding-top: 30px;
+            margin-top: 30px;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(0,0,0,0.3);
+            font-size: 14px;
+        }
+
+        .connected {
+            background: rgba(46, 204, 113, 0.3) !important;
+            border: 1px solid #2ecc71;
+        }
+
+        .disconnected {
+            background: rgba(231, 76, 60, 0.3) !important;
+            border: 1px solid #e74c3c;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status" id="connectionStatus">
+        🔗 연결 확인 중...
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <h1>🔮 운세 DApp</h1>
+            <p>블록체인 기반 신비로운 점성술 서비스</p>
+        </div>
+
+        <div id="statusMessage" class="status"></div>
+
+        <!-- 사용자 등록 섹션 -->
+        <div class="card" id="registerSection">
+            <h2>✨ 사용자 등록</h2>
+            <div class="form-group">
+                <label for="userName">이름</label>
+                <input type="text" id="userName" placeholder="당신의 이름을 입력하세요">
+            </div>
+            <div class="form-group">
+                <label for="birthDate">생년월일</label>
+                <input type="text" id="birthDate" placeholder="YYYYMMDD (예: 19950315)">
+            </div>
+            <div class="form-group">
+                <label for="zodiacSign">별자리</label>
+                <select id="zodiacSign" class="zodiac-select">
+                    <option value="">별자리를 선택하세요</option>
+                    <option value="Aries">양자리 (Aries)</option>
+                    <option value="Taurus">황소자리 (Taurus)</option>
+                    <option value="Gemini">쌍둥이자리 (Gemini)</option>
+                    <option value="Cancer">게자리 (Cancer)</option>
+                    <option value="Leo">사자자리 (Leo)</option>
+                    <option value="Virgo">처녀자리 (Virgo)</option>
+                    <option value="Libra">천칭자리 (Libra)</option>
+                    <option value="Scorpio">전갈자리 (Scorpio)</option>
+                    <option value="Sagittarius">사수자리 (Sagittarius)</option>
+                    <option value="Capricorn">염소자리 (Capricorn)</option>
+                    <option value="Aquarius">물병자리 (Aquarius)</option>
+                    <option value="Pisces">물고기자리 (Pisces)</option>
+                </select>
+            </div>
+            <button class="btn" onclick="registerUser()">🌟 등록하기</button>
+        </div>
+
+        <!-- 운세 생성 섹션 -->
+        <div class="card" id="fortuneSection" style="display: none;">
+            <h2>🎯 오늘의 운세</h2>
+            <button class="btn" onclick="generateFortune()">🔮 운세 보기</button>
+            <button class="btn" onclick="checkTodaysFortune()" style="background: linear-gradient(45deg, #74b9ff, #0984e3);">📖 기존 운세 확인</button>
+            
+            <div id="fortuneResult" class="fortune-result">
+                <h3>🌟 당신의 운세</h3>
+                <div id="fortuneMessage" class="fortune-message"></div>
+                <div>행운의 숫자: <span id="luckyNumber" class="lucky-number"></span></div>
+                <div style="margin-top: 15px;">별자리: <span id="userZodiac"></span></div>
+            </div>
+        </div>
+
+        <!-- 관리자 섹션 -->
+        <div class="card admin-section" id="adminSection" style="display: none;">
+            <h2>👑 관리자 기능</h2>
+            <div class="form-group">
+                <label for="newMessage">새로운 운세 메시지</label>
+                <input type="text" id="newMessage" placeholder="새로운 운세 메시지를 입력하세요">
+            </div>
+            <button class="btn" onclick="addFortuneMessage()">💫 메시지 추가</button>
+            <button class="btn" onclick="getAllMessages()" style="background: linear-gradient(45deg, #a29bfe, #6c5ce7);">📋 모든 메시지 보기</button>
+        </div>
+    </div>
+
+    <!-- Web3 라이브러리 -->
+    <script src="https://cdn.jsdelivr.net/npm/web3@1.8.0/dist/web3.min.js"></script>
+    
+    <script>
+        console.log("🔮 운세 DApp 로드 완료!");
+        // 스마트 컨트랙트 설정
+        let web3;
+        let contract;
+        let userAccount;
+
+        // 컨트랙트 주소와 ABI (Remix에서 복사해올 예정)
+        const CONTRACT_ADDRESS = "0x1e70fDd1560a4CC51aabE462EA69c15b30337f2B"; // 실제 컨트랙트 주소
+        const CONTRACT_ABI = [
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_admin",
+                        "type": "address"
+                    }
+                ],
+                "name": "addAdmin",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "_message",
+                        "type": "string"
+                    }
+                ],
+                "name": "addFortuneMessage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "stateMutability": "nonpayable",
+                "type": "constructor"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "admin",
+                        "type": "address"
+                    }
+                ],
+                "name": "AdminAdded",
+                "type": "event"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "user",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "date",
+                        "type": "uint256"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "message",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "uint256",
+                        "name": "luckyNumber",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "FortuneGenerated",
+                "type": "event"
+            },
+            {
+                "inputs": [],
+                "name": "generateTodaysFortune",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "message",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "luckyNumber",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "string",
+                        "name": "_name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "_birthDate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "_zodiacSign",
+                        "type": "string"
+                    }
+                ],
+                "name": "registerUser",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_admin",
+                        "type": "address"
+                    }
+                ],
+                "name": "removeAdmin",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_index",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "removeFortuneMessage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_index",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "_newMessage",
+                        "type": "string"
+                    }
+                ],
+                "name": "updateFortuneMessage",
+                "outputs": [],
+                "stateMutability": "nonpayable",
+                "type": "function"
+            },
+            {
+                "anonymous": false,
+                "inputs": [
+                    {
+                        "indexed": true,
+                        "internalType": "address",
+                        "name": "user",
+                        "type": "address"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "indexed": false,
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    }
+                ],
+                "name": "UserRegistered",
+                "type": "event"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "admins",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "fortuneMessages",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getAllFortuneMessages",
+                "outputs": [
+                    {
+                        "internalType": "string[]",
+                        "name": "",
+                        "type": "string[]"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getContractInfo",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "contractOwner",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "totalFortuneMessages",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "currentDate",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getCurrentDate",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_date",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getFortune",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "message",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "luckyNumber",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "date",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "exists",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "_index",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "getFortuneMessage",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "",
+                        "type": "string"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getFortuneMessageCount",
+                "outputs": [
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getMyInfo",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "birthDate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "isRegistered",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "getTodaysFortune",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "message",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "luckyNumber",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "exists",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_user",
+                        "type": "address"
+                    }
+                ],
+                "name": "getUserInfo",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "birthDate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "isRegistered",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "_user",
+                        "type": "address"
+                    }
+                ],
+                "name": "isUserRegistered",
+                "outputs": [
+                    {
+                        "internalType": "bool",
+                        "name": "",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [],
+                "name": "owner",
+                "outputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "",
+                        "type": "uint256"
+                    }
+                ],
+                "name": "userFortunes",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "message",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "luckyNumber",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "date",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "exists",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            },
+            {
+                "inputs": [
+                    {
+                        "internalType": "address",
+                        "name": "",
+                        "type": "address"
+                    }
+                ],
+                "name": "users",
+                "outputs": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "uint256",
+                        "name": "birthDate",
+                        "type": "uint256"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "zodiacSign",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "bool",
+                        "name": "isRegistered",
+                        "type": "bool"
+                    }
+                ],
+                "stateMutability": "view",
+                "type": "function"
+            }
+        ]
+
+        // Web3 초기화
+        async function initWeb3() {
+            if (typeof window.ethereum !== 'undefined') {
+                web3 = new Web3(window.ethereum);
+                try {
+                    // MetaMask 연결 요청
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    userAccount = accounts[0];
+                    
+                    // 컨트랙트 인스턴스 생성
+                    contract = new web3.eth.Contract(CONTRACT_ABI, CONTRACT_ADDRESS);
+                    
+                    updateConnectionStatus(true);
+                    checkUserRegistration();
+                    checkAdminStatus();
+                    
+                } catch (error) {
+                    console.error("MetaMask 연결 실패:", error);
+                    updateConnectionStatus(false);
+                }
+            } else {
+                alert("MetaMask가 설치되지 않았습니다!");
+                updateConnectionStatus(false);
+            }
+        }
+
+        // 연결 상태 업데이트
+        function updateConnectionStatus(connected) {
+            const status = document.getElementById('connectionStatus');
+            if (connected) {
+                status.textContent = `🟢 연결됨: ${userAccount.substring(0, 6)}...${userAccount.substring(38)}`;
+                status.className = 'connection-status connected';
+            } else {
+                status.textContent = '🔴 연결 안됨';
+                status.className = 'connection-status disconnected';
+            }
+        }
+
+        // 상태 메시지 표시
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+            
+            setTimeout(() => {
+                statusDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        // 사용자 등록 확인
+        async function checkUserRegistration() {
+            try {
+                const isRegistered = await contract.methods.isUserRegistered(userAccount).call();
+                
+                if (isRegistered) {
+                    document.getElementById('registerSection').style.display = 'none';
+                    document.getElementById('fortuneSection').style.display = 'block';
+                    
+                    // 사용자 정보 가져오기
+                    const userInfo = await contract.methods.getMyInfo().call({ from: userAccount });
+                    showStatus(`환영합니다, ${userInfo.name}님! (${userInfo.zodiacSign})`, 'success');
+                } else {
+                    document.getElementById('registerSection').style.display = 'block';
+                    document.getElementById('fortuneSection').style.display = 'none';
+                }
+            } catch (error) {
+                console.error("사용자 등록 확인 실패:", error);
+            }
+        }
+
+        // 관리자 상태 확인
+        async function checkAdminStatus() {
+            try {
+                const isAdmin = await contract.methods.admins(userAccount).call();
+                if (isAdmin) {
+                    document.getElementById('adminSection').style.display = 'block';
+                }
+            } catch (error) {
+                console.error("관리자 상태 확인 실패:", error);
+            }
+        }
+
+        // 사용자 등록
+        async function registerUser() {
+            const name = document.getElementById('userName').value;
+            const birthDate = document.getElementById('birthDate').value;
+            const zodiacSign = document.getElementById('zodiacSign').value;
+            
+            if (!name || !birthDate || !zodiacSign) {
+                showStatus('모든 필드를 입력해주세요!', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('등록 중...', 'success');
+                
+                await contract.methods.registerUser(name, parseInt(birthDate), zodiacSign)
+                    .send({ from: userAccount });
+                
+                showStatus('등록 완료!', 'success');
+                checkUserRegistration();
+                
+            } catch (error) {
+                console.error("등록 실패:", error);
+                showStatus('등록 실패: ' + error.message, 'error');
+            }
+        }
+
+        // 운세 생성
+        async function generateFortune() {
+            try {
+                showStatus('운세 생성 중...', 'success');
+                
+                const result = await contract.methods.generateTodaysFortune()
+                    .send({ from: userAccount });
+                
+                // 이벤트에서 결과 가져오기
+                const fortuneEvent = result.events.FortuneGenerated;
+                if (fortuneEvent) {
+                    displayFortune(
+                        fortuneEvent.returnValues.message,
+                        fortuneEvent.returnValues.luckyNumber,
+                        "당신의 별자리"
+                    );
+                }
+                
+                showStatus('새로운 운세가 생성되었습니다!', 'success');
+                
+            } catch (error) {
+                console.error("운세 생성 실패:", error);
+                if (error.message.includes("already generated")) {
+                    showStatus('오늘 이미 운세를 확인하셨습니다!', 'error');
+                } else {
+                    showStatus('운세 생성 실패: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // 오늘의 운세 확인
+        async function checkTodaysFortune() {
+            try {
+                const fortune = await contract.methods.getTodaysFortune().call({ from: userAccount });
+                
+                if (fortune.exists) {
+                    displayFortune(fortune.message, fortune.luckyNumber, fortune.zodiacSign);
+                    showStatus('기존 운세를 불러왔습니다!', 'success');
+                } else {
+                    showStatus('아직 오늘의 운세가 없습니다. 새로 생성해주세요!', 'error');
+                }
+                
+            } catch (error) {
+                console.error("운세 조회 실패:", error);
+                showStatus('운세 조회 실패: ' + error.message, 'error');
+            }
+        }
+
+        // 운세 결과 표시
+        function displayFortune(message, luckyNumber, zodiacSign) {
+            document.getElementById('fortuneMessage').textContent = message;
+            document.getElementById('luckyNumber').textContent = luckyNumber;
+            document.getElementById('userZodiac').textContent = zodiacSign;
+            document.getElementById('fortuneResult').style.display = 'block';
+        }
+
+        // 운세 메시지 추가 (관리자)
+        async function addFortuneMessage() {
+            const message = document.getElementById('newMessage').value;
+            
+            if (!message) {
+                showStatus('메시지를 입력해주세요!', 'error');
+                return;
+            }
+            
+            try {
+                showStatus('메시지 추가 중...', 'success');
+                
+                await contract.methods.addFortuneMessage(message)
+                    .send({ from: userAccount });
+                
+                showStatus('새로운 운세 메시지가 추가되었습니다!', 'success');
+                document.getElementById('newMessage').value = '';
+                
+            } catch (error) {
+                console.error("메시지 추가 실패:", error);
+                showStatus('메시지 추가 실패: ' + error.message, 'error');
+            }
+        }
+
+        // 모든 운세 메시지 조회
+        async function getAllMessages() {
+            try {
+                const messages = await contract.methods.getAllFortuneMessages().call();
+                alert("모든 운세 메시지:\n\n" + messages.join("\n\n"));
+            } catch (error) {
+                console.error("메시지 조회 실패:", error);
+                showStatus('메시지 조회 실패: ' + error.message, 'error');
+            }
+        }
+
+        // 페이지 로드 시 초기화
+        window.addEventListener('load', () => {
+            console.log("🔮 운세 DApp 초기화 중...");
+            initWeb3(); // 컨트랙트 주소와 ABI 설정 후 주석 해제
+        });
+
+    </script>
+</body>
+</html>
